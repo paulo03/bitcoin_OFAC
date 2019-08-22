@@ -1,4 +1,7 @@
 import SDN_List_Scrape_for_BTC_address
+''' 
+Once this .py file is imported, its code is executed, and it's the source of our imported data read into variable 'df'
+'''
 import pandas as pd
 import datetime
 import requests
