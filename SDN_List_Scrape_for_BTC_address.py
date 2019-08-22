@@ -21,41 +21,52 @@ r = requests.get('https://www.treasury.gov/ofac/downloads/sdn.csv')
 print(r.url)
 
 string = r.text
-bc1 = 'bc1'
-xbt = 'xbt'
-listt = []
+# The coin names/abbreviations on the SDN List
+xbt_string = 'xbt'
+# eth_string = '0x' # Not on SDN List yet
+ltc_string = 'ltc'
 
-def find_btc_address(item, string, listt):
+address_list = []
+# Accumulation list is outside of the function and passed in so that it's not overwritten
+
+# find_coin_address function can be used for BTC, BCH, LTC and possibly others, but it
+# cannot be used for ETH or ETC – We will need another function to collect that data
+def find_coin_address(item, string, address_list):
     if item.lower() in string:
         location = string.find(str(item.lower()))
         print(string[location:(location + 38)])
-        listt.append(string[location:(location + 38)])
+        address_list.append(string[location:(location + 38)])
         string = string[(location + 38): len(string)]
-        find_btc_address(item, string, listt)
+        find_coin_address(item, string, address_list)
     elif item.upper() in string:
         location = string.find(str(item.upper()))
         print(string[location:(location + 38)])
-        listt.append(string[location:(location + 38)])
+        address_list.append(string[location:(location + 38)])
         string = string[(location + 38): len(string)]
-        find_btc_address(item, string, listt)
+        find_coin_address(item, string, address_list)
     elif item.capitalize() in string:
         location = string.find(str(item.capitalize()))
         print(string[location:(location + 38)])
-        listt.append(string[location:(location + 38)])
+        address_list.append(string[location:(location + 38)])
         string = string[(location + 38): len(string)]
-        find_btc_address(item, string, listt)
+        find_coin_address(item, string, address_list)
     else:
-        print(str(item), "Is NOT in there")
-    return listt
+        print("")
 
-find_btc_address(xbt, string, listt)
+find_coin_address(xbt_string, string, address_list)
+find_coin_address(ltc_string, string, address_list)
 
-l = []
-for item in listt:
-    a, b = str(item).split()
-    l.append([a, b])
+
+l = [] # l is a list that will take the string list (address_list) that is split properly [[coin, address]]
+for item in address_list:
+    coin, address = str(item).split()
+    l.append([coin, address])
 
 df = pd.DataFrame(l, columns=['Coin', 'Address'])
+
+print(len(df[df['Coin'] == 'XBT']), "Bitcoin addresses on the SDN List")
+print(len(df[df['Coin'] == 'LTC']), "Litecoin addresses on the SDN List")
+
 date = str(datetime.date.today())
 csv = 'OFAC_BTC_ADDRESS_CHECK_' + date + '.csv'
-df_csv = df.to_csv(csv)
+df_csv = df.to_csv(csv, index=False)
