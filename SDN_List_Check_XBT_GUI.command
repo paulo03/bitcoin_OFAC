@@ -1,4 +1,4 @@
-#!/Users/paulo/Documents/python_venv/venv1/bin/python
+#!/Users/username/path_to_venv_/bin/python
 
 import pandas as pd
 import tkinter as tk
@@ -61,60 +61,69 @@ This information is followed by the unique alphanumeric identifier of the
 specific address. [06-06-2018]
         '''
 
+        # Use requests to pull data from SDN List csv hosted online,
+        # keep in string var
         r = requests.get('https://www.treasury.gov/ofac/downloads/sdn.csv')
-        print(r.url + '\n')
-
         string = r.text
-        # The coin names/abbreviations on the SDN List
-        xbt_string = 'xbt'
-        # eth_string = '0x'
-        ltc_string = 'ltc'
 
-        address_list = []
         # Accumulation list is outside of the function
-        # and passed in so that it's not overwritten
+        # and passed into the so that it's not overwritten
+        address_list = []
 
-        find_coin_address(xbt_string, string, address_list)
-        find_coin_address(ltc_string, string, address_list)
+        # Call the function we wrote above,
+        # and create a dataframe with returned data
+        find_coin_address(string, address_list)
+        df = pd.DataFrame(address_list, columns=['Coin', 'Address'])
 
-        l = []
-        # a list that will take the string list (address_list) and split it
-        for item in address_list:
-            a, b = str(item).split()
-            l.append([a, b])
+        # A list of all the coins talked about on the FAQ (563.)
+        # copied at the top
+        SDN_coins = [
+            ["XBT", "Bitcoin"],
+            ["ETH", "Ethereum"],
+            ["LTC", "Litecoin"],
+            ["NEO", "NEO"],
+            ["DASH", "DASH"],
+            ["XRP", "Ripple"],
+            ["MIOTA", "IOTA"],
+            ["XMR", "Monero"],
+            ["PTR", "Petro"]
+        ]
 
-        df = pd.DataFrame(l, columns=['Coin', 'Address'])
+        # Loop through the SDN_coins list above,
+        # and print how many of each on SDN List
+        for coin in SDN_coins:
+            if len(df[df['Coin'] == coin[0]]) > 0:
+                print_item = str(len(df[df['Coin'] == coin[0]])) + " "
+                print_item = print_item + coin[1] + " "
+                print_item = print_item + "addresses on the SDN List\n"
+                sys.stdout.write(print_item)
 
-        print(len(df[df['Coin'] == 'XBT']),
-                         "Bitcoin addresses on the SDN List")
-        print(len(df[df['Coin'] == 'LTC']),
-                         "Litecoin addresses on the SDN List")
-
+        # Get date, and export dataframe as CSV
         date = str(datetime.date.today())
         csv = 'OFAC_BTC_ADDRESS_CHECK_' + date + '.csv'
         df_csv = df.to_csv(csv, index=False)
         
-def find_coin_address(item, string, address_list):
-    if item.lower() in string:
-        location = string.find(str(item.lower()))
-        sys.stdout.write(str(string[location:(location + 38)]) + '\n')
-        address_list.append(string[location:(location + 38)])
-        string = string[(location + 38): len(string)]
-        find_coin_address(item, string, address_list)
-    elif item.upper() in string:
-        location = string.find(str(item.upper()))
-        sys.stdout.write(str(string[location:(location + 38)]) + '\n')
-        address_list.append(string[location:(location + 38)])
-        string = string[(location + 38): len(string)]
-        find_coin_address(item, string, address_list)
-    elif item.capitalize() in string:
-        location = string.find(str(item.capitalize()))
-        sys.stdout.write(str(string[location:(location + 38)]) + '\n')
-        address_list.append(string[location:(location + 38)])
-        string = string[(location + 38): len(string)]
-        find_coin_address(item, string, address_list)
+def find_coin_address(string, address_list):
+    
+    # In explaining the structure of digital currency addresses on OFAC SDN List
+    # it is said that the structure will always begin with:
+    # “Digital Currency Address”
+    # Thus, we will use this as our indicator when parsing through the List
+    indicator = "Digital Currency Address - "
+    
+    if indicator in string:
+        location = string.find(indicator)
+        coin = string[location + len(indicator):].split()[0]
+        address = string[location + len(indicator):].split()[1]
+        address = address[0:len(address)-1]
+        print_item = coin + " " + address + "\n"
+        sys.stdout.write(print_item)
+        pair = [coin, address]
+        address_list.append(pair)
+        string = string[location + len(indicator):]
+        find_coin_address(string, address_list)
     else:
-        sys.stdout.write('\n')
+        sys.stdout.write("\n")
         
 class TextRedirector(object):
     def __init__(self, widget, tag="stdout"):
