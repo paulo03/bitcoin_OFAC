@@ -1,4 +1,4 @@
-import SDN_List_Scrape_for_BTC_address
+import SDN_List_Scrape_Crypto_Address
 ''' 
 Once this .py file is imported, its code is executed, and it's the source of our imported data read into variable 'df'
 '''
@@ -8,11 +8,11 @@ import requests
 from bitcoin_explorer import Address
 
 date = str(datetime.date.today())
-csv = 'OFAC_BTC_ADDRESS_CHECK_' + date + '.csv'
+csv = 'OFAC_CRYPTO_ADDRESS_CHECK_' + date + '.csv'
 
 df = pd.read_csv(csv)
 OFAC_coin_balances = []
-
+# Only able to check XBT or Bitcoin address balances on the SDN List with the bitcoin_explorer script
 df_btc = df[df['Coin'] == 'XBT']
 
 for item in df_btc['Address']:
