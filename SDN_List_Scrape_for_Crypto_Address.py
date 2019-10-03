@@ -71,5 +71,5 @@ for coin in SDN_coins:
 
 # Get date, and export dataframe as CSV
 date = str(datetime.date.today())
-csv = 'OFAC_BTC_ADDRESS_CHECK_' + date + '.csv'
+csv = 'OFAC_CRYPTO_ADDRESS_CHECK_' + date + '.csv'
 df_csv = df.to_csv(csv, index=False)
